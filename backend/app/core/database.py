@@ -1,8 +1,15 @@
 import sqlite3
 import pandas as pd
-import os
+from pathlib import Path
 
-DB_PATH = "backend/space_debris.db"
+# Project root: space-debris-dashboard/
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
+# Database: space-debris-dashboard/backend/space_debris.db
+DB_PATH = PROJECT_ROOT / "backend" / "space_debris.db"
+
+# Demo snapshot: space-debris-dashboard/data/demo_snapshot.csv
+SNAPSHOT_PATH = PROJECT_ROOT / "data" / "demo_snapshot.csv"
 
 def init_db():
     """Creates the SQLite database and the satellites table for Member 4."""
@@ -32,8 +39,9 @@ def init_db():
 
 def seed_database_from_snapshot():
     """Loads Member 1's frozen demo snapshot into Member 4's database[cite: 3]."""
-    csv_path = "data/demo_snapshot.csv"
-    if not os.path.exists(csv_path):
+    csv_path = SNAPSHOT_PATH
+
+    if not csv_path.exists():
         print(f"Error: Could not find {csv_path}. Run normalization first.")
         return
 
