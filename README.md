@@ -11,3 +11,9 @@
     git add .
     git commit -m "Describe your changes"
     git push -u origin <your-branch-name>
+
+
+### Backend setup
+1) create virtual env :- python -m venv venv
+2) activate venv
+3) pip install -r requirements.txt
