@@ -65,9 +65,19 @@ def seed_database_from_snapshot():
     })
 
     conn = sqlite3.connect(DB_PATH)
-    
-    # Insert data into the SQLite database. 'replace' overwrites existing rows.
-    df.to_sql('satellites', conn, if_exists='replace', index=False)
+
+    # Recreate the table using our defined schema
+    cursor = conn.cursor()
+    cursor.execute("DROP TABLE IF EXISTS satellites")
+    conn.commit()
+    conn.close()
+
+    init_db()
+
+    conn = sqlite3.connect(DB_PATH)
+
+    # Insert data into the existing table without replacing its schema
+    df.to_sql('satellites', conn, if_exists='append', index=False)
     
     # Verify the insertion
     cursor = conn.cursor()
