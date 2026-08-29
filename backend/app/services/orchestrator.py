@@ -14,6 +14,8 @@ Pipeline:
 from typing import Any, Dict, List
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import sqlite3
+import json
 
 import pandas as pd
 
@@ -23,6 +25,96 @@ from app.services.conjunction import refine_conjunction
 from app.services.risk import calculate_risk_score
 from app.services.validation import calculate_data_age_hours
 
+def save_conjunctions(
+    conjunction_results: List[Dict[str, Any]],
+    records_by_id: Dict[int, Dict[str, Any]]
+):
+    """
+    Save the latest conjunction results into SQLite.
+
+    The conjunction table represents the latest pipeline snapshot,
+    so existing conjunctions are replaced on every pipeline run.
+    """
+
+    PROJECT_ROOT = Path(__file__).resolve().parents[3]
+    DB_PATH = PROJECT_ROOT / "backend" / "space_debris.db"
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    # Replace the previous pipeline snapshot.
+    cursor.execute("DELETE FROM conjunctions")
+
+    for event in conjunction_results:
+
+        id_a = event["norad_cat_id_a"]
+        id_b = event["norad_cat_id_b"]
+
+        object_a = str(
+            records_by_id[id_a].get("OBJECT_NAME", id_a)
+        )
+
+        object_b = str(
+            records_by_id[id_b].get("OBJECT_NAME", id_b)
+        )
+
+        tca_timestamp = event["tca_timestamp"]
+
+        if isinstance(tca_timestamp, datetime):
+            tca_timestamp = tca_timestamp.isoformat()
+        else:
+            tca_timestamp = str(tca_timestamp)
+
+        reasons = event["reasons"]
+
+        if not isinstance(reasons, str):
+            reasons = json.dumps(reasons)
+
+        distance_curve = event["distance_curve"]
+
+        if distance_curve is not None:
+            distance_curve = json.dumps(
+                distance_curve,
+                default=str
+            )
+
+        cursor.execute(
+            """
+            INSERT INTO conjunctions (
+                object_a,
+                object_b,
+                tca_timestamp,
+                minimum_separation_km,
+                relative_velocity_kms,
+                risk_score,
+                severity,
+                confidence,
+                reasons,
+                distance_curve
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                object_a,
+                object_b,
+                tca_timestamp,
+                event["minimum_separation_km"],
+                event["relative_velocity_kms"],
+                event["risk_score"],
+                event["severity"],
+                event["confidence"],
+                reasons,
+                distance_curve
+            )
+        )
+
+    conn.commit()
+    conn.close()
+
+    print(
+        f"[ORCHESTRATOR] Saved "
+        f"{len(conjunction_results)} conjunctions to database."
+    )
 
 def run_pipeline() -> Dict[str, Any]:
     """
@@ -264,6 +356,11 @@ def run_pipeline() -> Dict[str, Any]:
     print(
         f"[ORCHESTRATOR] Conjunction refinement complete: "
         f"{len(conjunction_results)} events."
+    )
+
+    save_conjunctions(
+        conjunction_results,
+        records_by_id
     )
 
     pipeline_summary = {

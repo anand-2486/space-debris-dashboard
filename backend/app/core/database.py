@@ -45,7 +45,8 @@ def init_db():
         risk_score REAL NOT NULL,
         severity TEXT NOT NULL,
         confidence REAL NOT NULL,
-        reasons TEXT NOT NULL
+        reasons TEXT NOT NULL,
+        distance_curve TEXT
     )
     ''')
     
