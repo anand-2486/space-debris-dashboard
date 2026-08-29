@@ -4,7 +4,7 @@ conjunction.py — Member 3 (Algorithms & Risk)
 
 import math
 from typing import List, Dict, Any
-from backend.app.services.propagator import PropagationResult
+from app.services.propagator import PropagationResult
 
 
 def refine_conjunction(

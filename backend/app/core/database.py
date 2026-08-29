@@ -33,6 +33,22 @@ def init_db():
         retrieved_at TEXT
     )
     ''')
+
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS conjunctions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        object_a TEXT NOT NULL,
+        object_b TEXT NOT NULL,
+        tca_timestamp TEXT NOT NULL,
+        minimum_separation_km REAL NOT NULL,
+        relative_velocity_kms REAL NOT NULL,
+        risk_score REAL NOT NULL,
+        severity TEXT NOT NULL,
+        confidence REAL NOT NULL,
+        reasons TEXT NOT NULL
+    )
+    ''')
+    
     conn.commit()
     conn.close()
     print(f"Database initialized at {DB_PATH}")
