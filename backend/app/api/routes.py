@@ -407,7 +407,7 @@ def get_conjunction_trajectory(conjunction_id: int):
         """
         SELECT *
         FROM satellites
-        WHERE object_name = ?
+        WHERE norad_cat_id = ?
         """,
         (conjunction["object_a"],)
     )
@@ -418,7 +418,7 @@ def get_conjunction_trajectory(conjunction_id: int):
         """
         SELECT *
         FROM satellites
-        WHERE object_name = ?
+        WHERE norad_cat_id = ?
         """,
         (conjunction["object_b"],)
     )

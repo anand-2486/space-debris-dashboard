@@ -50,13 +50,8 @@ def save_conjunctions(
         id_a = event["norad_cat_id_a"]
         id_b = event["norad_cat_id_b"]
 
-        object_a = str(
-            records_by_id[id_a].get("OBJECT_NAME", id_a)
-        )
-
-        object_b = str(
-            records_by_id[id_b].get("OBJECT_NAME", id_b)
-        )
+        object_a = str(id_a)
+        object_b = str(id_b)
 
         tca_timestamp = event["tca_timestamp"]
 
