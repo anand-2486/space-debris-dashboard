@@ -7,7 +7,6 @@ import OrbitViewer from '../components/OrbitViewer';
 import DistanceChart from '../components/DistanceChart';
 import DataFreshness from '../components/DataFreshness';
 import { ArrowLeft, ChevronRight, Compass } from 'lucide-react';
-
 import { sortDangerToLow } from './Conjunctions';
 
 export default function ConjunctionDetail() {
@@ -27,41 +26,62 @@ export default function ConjunctionDetail() {
         setLoading(true);
         setError(null);
 
-        // First get the conjunction itself.
+        // Get the conjunction itself.
         const eventData = await apiService.getConjunctionById(id);
 
         if (!eventData) {
-          throw new Error(`Conjunction ${id} was not returned by the backend.`);
+          throw new Error(
+            `Conjunction ${id} was not returned by the backend.`
+          );
         }
 
         /*
          * object_a and object_b are NORAD catalog IDs.
-         * Fetch their actual satellite metadata from the satellite endpoint.
+         *
+         * Fetch:
+         *  - all conjunctions for the event switcher
+         *  - conjunction trajectories
+         *  - satellite metadata for Object A
+         *  - satellite metadata for Object B
          */
-        const [eventsList, trajectoryData, satelliteA, satelliteB] =
-          await Promise.all([
-            apiService.getConjunctions(),
-            apiService.getConjunctionTrajectory(id),
-            apiService.getSatelliteById(eventData.object_a),
-            apiService.getSatelliteById(eventData.object_b),
-          ]);
+        const [
+          eventsList,
+          trajectoryData,
+          satelliteA,
+          satelliteB,
+        ] = await Promise.all([
+          apiService.getConjunctions(),
+          apiService.getConjunctionTrajectory(id),
+          apiService.getSatelliteById(eventData.object_a),
+          apiService.getSatelliteById(eventData.object_b),
+        ]);
 
         if (!isMounted) return;
 
         /*
-         * Keep only data that actually came from backend endpoints.
+         * Keep the original backend data, but also expose the trajectory
+         * arrays directly because OrbitViewer/Orbit2D/Orbit3D expect:
          *
-         * The conjunction endpoint provides the conjunction information.
-         * The satellite endpoints provide epoch/source/retrieval metadata
-         * for Object A and Object B.
-         * The trajectory endpoint provides the conjunction trajectories.
+         *   event.trajectory_a
+         *   event.trajectory_b
+         *
+         * The backend response actually contains:
+         *
+         *   trajectoryData.trajectory_a
+         *   trajectoryData.trajectory_b
          */
         const completeEvent = {
           ...eventData,
 
+          // Satellite metadata fetched from /api/satellites/{norad_id}
           satellite_a: satelliteA,
           satellite_b: satelliteB,
 
+          // Direct trajectory access for visualization components
+          trajectory_a: trajectoryData?.trajectory_a || [],
+          trajectory_b: trajectoryData?.trajectory_b || [],
+
+          // Keep the complete backend trajectory response as well
           trajectories: trajectoryData,
         };
 
@@ -138,7 +158,6 @@ export default function ConjunctionDetail() {
             <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-slate-800/80">
 
               <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
-
                 <button
                   type="button"
                   onClick={() => navigate('/conjunctions')}
@@ -163,7 +182,6 @@ export default function ConjunctionDetail() {
 
               {/* Quick Event Selector */}
               <div className="flex items-center gap-3">
-
                 <label className="text-xs font-mono text-slate-400 flex items-center gap-1">
                   <Compass className="w-3.5 h-3.5 text-cyan-400" />
                   <span>Switch Event:</span>
@@ -187,9 +205,19 @@ export default function ConjunctionDetail() {
 
             {/* Data Freshness */}
             <DataFreshness
-              eventEpoch={event.satellite_a.epoch_utc}
-              retrievedAt={event.satellite_a.retrieved_at}
-              source={event.satellite_a.source_url}
+              systemStatus={{
+                last_propagated:
+                  event.satellite_a?.epoch_utc || null,
+
+                retrieved_at:
+                  event.satellite_a?.retrieved_at || null,
+
+                data_source:
+                  event.satellite_a?.source_url || null,
+
+                pipeline_status:
+                  'API DATA',
+              }}
             />
 
             {/* Risk / Operational Information */}

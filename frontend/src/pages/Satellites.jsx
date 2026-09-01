@@ -292,6 +292,7 @@ export default function Satellites() {
 
   const [loadingList, setLoadingList] = useState(true);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [loadingAll, setLoadingAll] = useState(false);
 
   const [timeString, setTimeString] = useState(
     () =>
@@ -355,6 +356,54 @@ export default function Satellites() {
       isMounted = false;
     };
   }, []);
+
+  // -------------------------------------------------------
+  // LOAD ALL SATELLITES
+  // Fetch remaining pages from the backend.
+  // -------------------------------------------------------
+
+  const handleLoadAllSatellites = async () => {
+    try {
+      setLoadingAll(true);
+
+      const pageSize = 500;
+      let offset = satellites.length;
+      let allSatellites = [...satellites];
+
+      while (true) {
+        const batch = await apiService.getSatellites(
+          pageSize,
+          offset
+        );
+
+        if (!batch || batch.length === 0) {
+          break;
+        }
+
+        allSatellites = [
+          ...allSatellites,
+          ...batch,
+        ];
+
+        offset += batch.length;
+
+        // Fewer than 500 means we reached the end.
+        if (batch.length < pageSize) {
+          break;
+        }
+      }
+
+      setSatellites(allSatellites);
+      setVisibleCount(allSatellites.length);
+    } catch (error) {
+      console.error(
+        "Failed to load all satellites:",
+        error
+      );
+    } finally {
+      setLoadingAll(false);
+    }
+  };
 
   // -------------------------------------------------------
   // SEARCH
@@ -750,15 +799,21 @@ export default function Satellites() {
             {visibleCount < satellites.length && (
               <button
                 type="button"
-                onClick={() =>
-                  setVisibleCount(
-                    satellites.length
-                  )
-                }
-                className="w-full mt-2 py-2 px-3 rounded-lg bg-slate-900/80 hover:bg-cyan-950/60 border border-slate-800 hover:border-cyan-800 text-slate-300 hover:text-cyan-300 font-mono text-xs flex items-center justify-center gap-1.5 transition-all"
+                onClick={handleLoadAllSatellites}
+                disabled={loadingAll}
+                className="w-full mt-2 py-2 px-3 rounded-lg bg-slate-900/80 hover:bg-cyan-950/60 border border-slate-800 hover:border-cyan-800 text-slate-300 hover:text-cyan-300 font-mono text-xs flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span>Load All Satellites</span>
-                <RotateCcw className="w-3.5 h-3.5" />
+                <span>
+                  {loadingAll
+                    ? "Loading All Satellites..."
+                    : "Load All Satellites"}
+                </span>
+
+                <RotateCcw
+                  className={`w-3.5 h-3.5 ${
+                    loadingAll ? "animate-spin" : ""
+                  }`}
+                />
               </button>
             )}
 

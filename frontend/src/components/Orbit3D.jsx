@@ -7,13 +7,14 @@ import { getEarthTexture } from './3d/TextureUtils';
 const EARTH_TEXTURE_URL =
   'https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg';
 
-// Procedural 3D Earth sphere with photorealistic texture & atmospheric halo
+// Earth
 function Earth() {
   const earthRef = useRef();
 
   const earthTexture = useMemo(() => {
     try {
       const loader = new THREE.TextureLoader();
+
       return loader.load(
         EARTH_TEXTURE_URL,
         undefined,
@@ -33,9 +34,9 @@ function Earth() {
 
   return (
     <group ref={earthRef}>
-      {/* Core Earth Sphere with Realistic Daytime Map */}
       <mesh>
         <sphereGeometry args={[2.0, 64, 64]} />
+
         <meshStandardMaterial
           map={earthTexture}
           roughness={0.85}
@@ -43,9 +44,9 @@ function Earth() {
         />
       </mesh>
 
-      {/* Atmospheric blue aura */}
       <mesh scale={1.03}>
         <sphereGeometry args={[2.0, 48, 48]} />
+
         <meshBasicMaterial
           color="#38bdf8"
           transparent
@@ -54,9 +55,9 @@ function Earth() {
         />
       </mesh>
 
-      {/* Outer faint glow */}
       <mesh scale={1.06}>
         <sphereGeometry args={[2.0, 32, 32]} />
+
         <meshBasicMaterial
           color="#0284c7"
           transparent
@@ -68,71 +69,106 @@ function Earth() {
   );
 }
 
-// Generate complete 360-degree closed circular orbit ring passing through TCA
-function generateClosedOrbitRing(
-  traj,
-  defaultInclination = 97.5,
-  defaultRadius = 2.45,
-  scale = 2.4 / 6800
-) {
-  const segments = 128;
-  const pts = [];
 
-  if (traj && traj.length >= 2) {
-    const vecs = traj.map(
-      (p) =>
-        new THREE.Vector3(
-          (p.x_km ?? p.x ?? 0) * scale,
-          (p.z_km ?? p.z ?? 0) * scale,
-          (p.y_km ?? p.y ?? 0) * scale
-        )
+// Validate and convert backend trajectory points
+function normalizeTrajectory(trajectory, label) {
+  if (!Array.isArray(trajectory) || trajectory.length < 2) {
+    throw new Error(
+      `${label} trajectory is missing or contains fewer than 2 valid points.`
     );
-
-    const midIdx = Math.floor(vecs.length / 2);
-    const rTca = vecs[midIdx].clone();
-    const radius = Math.max(2.35, rTca.length());
-
-    // Velocity tangent direction vector
-    const vVec = vecs[vecs.length - 1].clone().sub(vecs[0]);
-    if (vVec.length() < 0.001) {
-      vVec.set(0, 1, 0);
-    }
-
-    // Normal to orbital plane: h = r x v
-    let hVec = new THREE.Vector3().crossVectors(rTca, vVec);
-    if (hVec.length() < 0.0001) {
-      hVec.set(0, 1, 0);
-    }
-    hVec.normalize();
-
-    // In-plane basis vectors (e1 towards TCA, e2 perpendicular in plane)
-    const e1 = rTca.clone().normalize();
-    const e2 = new THREE.Vector3().crossVectors(hVec, e1).normalize();
-
-    // Complete 360-degree closed circular orbit loop
-    for (let i = 0; i <= segments; i++) {
-      const theta = (i / segments) * Math.PI * 2;
-      const pt = new THREE.Vector3()
-        .addScaledVector(e1, Math.cos(theta) * radius)
-        .addScaledVector(e2, Math.sin(theta) * radius);
-      pts.push(pt);
-    }
-    return pts;
   }
 
-  // Fallback 360-degree orbit ring with inclination
-  const incRad = (defaultInclination * Math.PI) / 180;
-  for (let i = 0; i <= segments; i++) {
-    const theta = (i / segments) * Math.PI * 2;
-    const x = Math.cos(theta) * defaultRadius;
-    const y = Math.sin(theta) * defaultRadius * Math.cos(incRad);
-    const z = Math.sin(theta) * defaultRadius * Math.sin(incRad);
-    pts.push(new THREE.Vector3(x, y, z));
+  const points = trajectory.map((point, index) => {
+    const x = Number(point?.x_km);
+    const y = Number(point?.y_km);
+    const z = Number(point?.z_km);
+
+    if (
+      !Number.isFinite(x) ||
+      !Number.isFinite(y) ||
+      !Number.isFinite(z)
+    ) {
+      throw new Error(
+        `${label} trajectory contains invalid coordinates at point ${index}.`
+      );
+    }
+
+    if (!point?.timestamp_utc) {
+      throw new Error(
+        `${label} trajectory is missing timestamp_utc at point ${index}.`
+      );
+    }
+
+    return {
+      ...point,
+      x,
+      y,
+      z,
+      timestamp: new Date(point.timestamp_utc),
+    };
+  });
+
+  if (points.some((point) => Number.isNaN(point.timestamp.getTime()))) {
+    throw new Error(
+      `${label} trajectory contains an invalid timestamp.`
+    );
   }
-  return pts;
+
+  return points;
 }
 
-// Realistic 3D Satellite Models for both Primary Asset and Threat Spacecraft
+
+// Convert backend ECI coordinates to Three.js coordinates.
+//
+// Backend:
+//   x_km
+//   y_km
+//   z_km
+//
+// Three.js:
+//   x
+//   z <- backend y
+//   y <- backend z
+function toThreeVector(point, scale) {
+  return new THREE.Vector3(
+    point.x * scale,
+    point.z * scale,
+    point.y * scale
+  );
+}
+
+
+// Find the actual backend trajectory point closest to TCA.
+function findClosestToTCA(trajectory, tcaTimestamp) {
+  if (!tcaTimestamp) {
+    return Math.floor(trajectory.length / 2);
+  }
+
+  const tca = new Date(tcaTimestamp);
+
+  if (Number.isNaN(tca.getTime())) {
+    throw new Error('Conjunction response contains an invalid TCA timestamp.');
+  }
+
+  let closestIndex = 0;
+  let smallestDifference = Infinity;
+
+  trajectory.forEach((point, index) => {
+    const difference = Math.abs(
+      point.timestamp.getTime() - tca.getTime()
+    );
+
+    if (difference < smallestDifference) {
+      smallestDifference = difference;
+      closestIndex = index;
+    }
+  });
+
+  return closestIndex;
+}
+
+
+// Realistic satellite/debris model
 function SpaceObjectMesh({ position, isDebris = false }) {
   const primaryColor = isDebris ? '#f43f5e' : '#38bdf8';
   const emissiveColor = isDebris ? '#e11d48' : '#0284c7';
@@ -144,9 +180,9 @@ function SpaceObjectMesh({ position, isDebris = false }) {
       position={position}
       rotation={isDebris ? [0.4, 0.8, 0.3] : [0.2, 0.5, 0]}
     >
-      {/* Central Cylindrical Satellite Body */}
       <mesh>
         <cylinderGeometry args={[0.045, 0.045, 0.16, 16]} />
+
         <meshStandardMaterial
           color={primaryColor}
           emissive={emissiveColor}
@@ -156,9 +192,9 @@ function SpaceObjectMesh({ position, isDebris = false }) {
         />
       </mesh>
 
-      {/* Gold Thermal Blanket Wrap on Core */}
-      <mesh position={[0, 0, 0]}>
+      <mesh>
         <cylinderGeometry args={[0.048, 0.048, 0.07, 16]} />
+
         <meshStandardMaterial
           color="#f59e0b"
           emissive="#d97706"
@@ -168,14 +204,19 @@ function SpaceObjectMesh({ position, isDebris = false }) {
         />
       </mesh>
 
-      {/* Extended Solar Array Wing Left */}
       <group position={[0, 0, 0.15]}>
         <mesh position={[0, 0, -0.04]}>
           <boxGeometry args={[0.015, 0.015, 0.04]} />
-          <meshStandardMaterial color="#94a3b8" metalness={0.9} />
+
+          <meshStandardMaterial
+            color="#94a3b8"
+            metalness={0.9}
+          />
         </mesh>
+
         <mesh>
           <boxGeometry args={[0.08, 0.015, 0.18]} />
+
           <meshStandardMaterial
             color={solarPanelColor}
             emissive={solarPanelEmissive}
@@ -185,14 +226,19 @@ function SpaceObjectMesh({ position, isDebris = false }) {
         </mesh>
       </group>
 
-      {/* Extended Solar Array Wing Right */}
       <group position={[0, 0, -0.15]}>
         <mesh position={[0, 0, 0.04]}>
           <boxGeometry args={[0.015, 0.015, 0.04]} />
-          <meshStandardMaterial color="#94a3b8" metalness={0.9} />
+
+          <meshStandardMaterial
+            color="#94a3b8"
+            metalness={0.9}
+          />
         </mesh>
+
         <mesh>
           <boxGeometry args={[0.08, 0.015, 0.18]} />
+
           <meshStandardMaterial
             color={solarPanelColor}
             emissive={solarPanelEmissive}
@@ -202,69 +248,136 @@ function SpaceObjectMesh({ position, isDebris = false }) {
         </mesh>
       </group>
 
-      {/* High-Gain Communication Dish / Antenna */}
-      <mesh position={[0.06, 0.03, 0]} rotation={[0, 0, Math.PI / 2]}>
+      <mesh
+        position={[0.06, 0.03, 0]}
+        rotation={[0, 0, Math.PI / 2]}
+      >
         <coneGeometry args={[0.042, 0.04, 16]} />
-        <meshStandardMaterial color="#e2e8f0" metalness={0.9} roughness={0.1} />
+
+        <meshStandardMaterial
+          color="#e2e8f0"
+          metalness={0.9}
+          roughness={0.1}
+        />
       </mesh>
 
-      {/* Antenna Mast / Sensor Boom */}
-      <mesh position={[-0.05, -0.02, 0]} rotation={[0, 0, -Math.PI / 3]}>
+      <mesh
+        position={[-0.05, -0.02, 0]}
+        rotation={[0, 0, -Math.PI / 3]}
+      >
         <cylinderGeometry args={[0.005, 0.005, 0.09, 8]} />
-        <meshStandardMaterial color="#cbd5e1" metalness={0.9} />
+
+        <meshStandardMaterial
+          color="#cbd5e1"
+          metalness={0.9}
+        />
       </mesh>
     </group>
   );
 }
 
-// 3D Orbital Trajectory Scene with Full 360° Closed Orbits
+
+// Actual backend trajectory scene
 function TrajectoryScene({ event }) {
-  const trajA = event?.trajectory_a || event?.trajectories?.object_a;
-  const trajB = event?.trajectory_b || event?.trajectories?.object_b;
-  const scale = 2.4 / 6800;
+  const [animationProgress, setAnimationProgress] = useState(0);
 
-  const incA = event?.object_a?.inclination_deg ?? 97.55;
-  const incB = event?.object_b?.inclination_deg ?? 98.72;
+  /*
+   * These are now the arrays exposed directly by our
+   * ConjunctionDetail.jsx change.
+   */
+  const trajectoryA = event?.trajectory_a;
+  const trajectoryB = event?.trajectory_b;
 
-  // Complete 360-degree closed orbit rings around the entire Earth
-  const fullOrbitA = useMemo(
-    () => generateClosedOrbitRing(trajA, incA, 2.45, scale),
-    [trajA, incA, scale]
-  );
-  const fullOrbitB = useMemo(
-    () => generateClosedOrbitRing(trajB, incB, 2.48, scale),
-    [trajB, incB, scale]
-  );
+  const {
+    pointsA,
+    pointsB,
+    tcaIndexA,
+    tcaIndexB,
+    tcaPosition,
+  } = useMemo(() => {
+    const normalizedA = normalizeTrajectory(
+      trajectoryA,
+      'Object A'
+    );
 
-  // TCA Encounter Intersection Point
-  const tcaPos = fullOrbitA[0] || new THREE.Vector3(2.45, 0, 0);
+    const normalizedB = normalizeTrajectory(
+      trajectoryB,
+      'Object B'
+    );
 
-  const [angle, setAngle] = useState(0);
+    const scale = 2.4 / 6800;
 
+    const pointsA = normalizedA.map((point) =>
+      toThreeVector(point, scale)
+    );
+
+    const pointsB = normalizedB.map((point) =>
+      toThreeVector(point, scale)
+    );
+
+    const tcaIndexA = findClosestToTCA(
+      normalizedA,
+      event?.tca_timestamp
+    );
+
+    const tcaIndexB = findClosestToTCA(
+      normalizedB,
+      event?.tca_timestamp
+    );
+
+    /*
+     * TCA marker is positioned using the actual Object A
+     * trajectory point closest to backend TCA.
+     *
+     * We do not invent an intersection point.
+     */
+    const tcaPosition =
+      pointsA[tcaIndexA] || pointsA[Math.floor(pointsA.length / 2)];
+
+    return {
+      pointsA,
+      pointsB,
+      tcaIndexA,
+      tcaIndexB,
+      tcaPosition,
+    };
+  }, [trajectoryA, trajectoryB, event?.tca_timestamp]);
+
+  /*
+   * Animate the satellite models along the REAL backend
+   * trajectory. The orbit lines themselves remain static.
+   */
   useFrame((_, delta) => {
-    setAngle((prev) => (prev + delta * 0.25) % (Math.PI * 2));
+    setAnimationProgress(
+      (previous) => (previous + delta * 0.08) % 1
+    );
   });
 
-  const satPosA = useMemo(() => {
-    if (!fullOrbitA || fullOrbitA.length === 0) return tcaPos;
-    const idx = Math.floor(((angle / (Math.PI * 2)) % 1) * (fullOrbitA.length - 1));
-    return fullOrbitA[idx] || tcaPos;
-  }, [fullOrbitA, angle, tcaPos]);
+  const animatedIndexA = Math.min(
+    pointsA.length - 1,
+    Math.floor(animationProgress * (pointsA.length - 1))
+  );
 
-  const satPosB = useMemo(() => {
-    if (!fullOrbitB || fullOrbitB.length === 0) return tcaPos;
-    const idx = Math.floor(
-      (((angle + Math.PI * 0.4) / (Math.PI * 2)) % 1) * (fullOrbitB.length - 1)
-    );
-    return fullOrbitB[idx] || tcaPos;
-  }, [fullOrbitB, angle, tcaPos]);
+  const animatedIndexB = Math.min(
+    pointsB.length - 1,
+    Math.floor(animationProgress * (pointsB.length - 1))
+  );
+
+  const satPosA =
+    pointsA[animatedIndexA] ||
+    pointsA[tcaIndexA];
+
+  const satPosB =
+    pointsB[animatedIndexB] ||
+    pointsB[tcaIndexB];
 
   return (
     <group>
-      {/* 1. Complete 360-Degree Closed Orbit Ring for Object A (Cyan) */}
-      {fullOrbitA.length > 1 && (
+
+      {/* ACTUAL Object A trajectory */}
+      {pointsA.length > 1 && (
         <Line
-          points={fullOrbitA}
+          points={pointsA}
           color="#38bdf8"
           lineWidth={2.5}
           transparent
@@ -272,10 +385,10 @@ function TrajectoryScene({ event }) {
         />
       )}
 
-      {/* 2. Complete 360-Degree Closed Orbit Ring for Object B (Rose) */}
-      {fullOrbitB.length > 1 && (
+      {/* ACTUAL Object B trajectory */}
+      {pointsB.length > 1 && (
         <Line
-          points={fullOrbitB}
+          points={pointsB}
           color="#f43f5e"
           lineWidth={2.5}
           transparent
@@ -283,95 +396,223 @@ function TrajectoryScene({ event }) {
         />
       )}
 
-      {/* 3. TCA Close Encounter Intersection Marker */}
-      <group position={tcaPos}>
-        <mesh>
-          <sphereGeometry args={[0.055, 20, 20]} />
-          <meshStandardMaterial
-            color="#f59e0b"
-            emissive="#f59e0b"
-            emissiveIntensity={2.5}
-          />
-        </mesh>
-        {/* Pulsing Encounter Ring */}
-        <mesh scale={1.8}>
-          <ringGeometry args={[0.04, 0.07, 24]} />
-          <meshBasicMaterial
-            color="#f59e0b"
-            transparent
-            opacity={0.6}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-      </group>
+      {/* Actual TCA location */}
+      {tcaPosition && (
+        <group position={tcaPosition}>
+          <mesh>
+            <sphereGeometry args={[0.055, 20, 20]} />
 
-      {/* 4. Active Primary Satellite Realistic 3D Model */}
-      <SpaceObjectMesh position={satPosA} isDebris={false} />
+            <meshStandardMaterial
+              color="#f59e0b"
+              emissive="#f59e0b"
+              emissiveIntensity={2.5}
+            />
+          </mesh>
 
-      {/* 5. Threat Debris Object Realistic 3D Model */}
-      <SpaceObjectMesh position={satPosB} isDebris={true} />
+          <mesh scale={1.8}>
+            <ringGeometry args={[0.04, 0.07, 24]} />
+
+            <meshBasicMaterial
+              color="#f59e0b"
+              transparent
+              opacity={0.6}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        </group>
+      )}
+
+      {/* Object A */}
+      {satPosA && (
+        <SpaceObjectMesh
+          position={satPosA}
+          isDebris={false}
+        />
+      )}
+
+      {/* Object B */}
+      {satPosB && (
+        <SpaceObjectMesh
+          position={satPosB}
+          isDebris={true}
+        />
+      )}
     </group>
   );
 }
 
-export default function Orbit3D({ event, isFullscreen, onToggleFullscreen }) {
+
+export default function Orbit3D({
+  event,
+  isFullscreen,
+  onToggleFullscreen,
+}) {
+  const [error, setError] = useState(null);
+
   const nameA =
-    typeof event?.object_a === 'object'
-      ? event?.object_a?.name || 'Primary Asset'
-      : event?.object_a || 'Primary Asset';
+    event?.satellite_a?.object_name ||
+    event?.object_a?.object_name ||
+    event?.object_a ||
+    'Object A';
+
   const nameB =
-    typeof event?.object_b === 'object'
-      ? event?.object_b?.name || 'Threat Debris'
-      : event?.object_b || 'Threat Debris';
+    event?.satellite_b?.object_name ||
+    event?.object_b?.object_name ||
+    event?.object_b ||
+    'Object B';
+
+  const hasTrajectory =
+    Array.isArray(event?.trajectory_a) &&
+    event.trajectory_a.length >= 2 &&
+    Array.isArray(event?.trajectory_b) &&
+    event.trajectory_b.length >= 2;
+
+  React.useEffect(() => {
+    if (!hasTrajectory) {
+      setError(
+        'Backend trajectory data is missing or incomplete for this conjunction.'
+      );
+      return;
+    }
+
+    try {
+      normalizeTrajectory(
+        event.trajectory_a,
+        'Object A'
+      );
+
+      normalizeTrajectory(
+        event.trajectory_b,
+        'Object B'
+      );
+
+      if (!event?.tca_timestamp) {
+        throw new Error(
+          'Backend conjunction response is missing tca_timestamp.'
+        );
+      }
+
+      setError(null);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Invalid backend trajectory data.'
+      );
+    }
+  }, [
+    event?.trajectory_a,
+    event?.trajectory_b,
+    event?.tca_timestamp,
+    hasTrajectory,
+  ]);
 
   return (
     <div
-      style={{ width: '100%', height: '100%', minHeight: '600px' }}
+      style={{
+        width: '100%',
+        height: '100%',
+        minHeight: '600px',
+      }}
       className="w-full h-full relative bg-slate-950/90 rounded-xl overflow-hidden flex flex-col"
     >
-      <Canvas
-        camera={{ position: [0, 0.8, 3.4], fov: 45 }}
-        style={{ width: '100%', height: '100%' }}
-        className="w-full h-full"
-      >
-        <ambientLight intensity={0.8} />
-        <directionalLight position={[10, 10, 5]} intensity={2.5} />
-        <directionalLight position={[-10, -5, -5]} intensity={0.8} color="#0284c7" />
+      {!error ? (
+        <Canvas
+          camera={{
+            position: [0, 0.8, 3.4],
+            fov: 45,
+          }}
+          style={{
+            width: '100%',
+            height: '100%',
+          }}
+          className="w-full h-full"
+        >
+          <ambientLight intensity={0.8} />
 
-        <Stars radius={100} depth={50} count={3500} factor={4} saturation={0} fade speed={1} />
-        <Earth />
-        <TrajectoryScene event={event} />
+          <directionalLight
+            position={[10, 10, 5]}
+            intensity={2.5}
+          />
 
-        <OrbitControls
-          enablePan={true}
-          enableZoom={true}
-          enableRotate={true}
-          minDistance={2.1}
-          maxDistance={12}
-        />
-      </Canvas>
+          <directionalLight
+            position={[-10, -5, -5]}
+            intensity={0.8}
+            color="#0284c7"
+          />
 
-      {/* Telemetry Overlay / HUD */}
-      <div className="absolute top-3 left-3 bg-slate-900/90 backdrop-blur-md p-3.5 rounded-xl border border-slate-800 text-xs font-mono max-w-xs pointer-events-none shadow-lg">
-        <div className="flex items-center gap-2 mb-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]"></span>
-          <span className="text-white font-bold truncate">{nameA} (360° Orbit)</span>
+          <Stars
+            radius={100}
+            depth={50}
+            count={3500}
+            factor={4}
+            saturation={0}
+            fade
+            speed={1}
+          />
+
+          <Earth />
+
+          <TrajectoryScene event={event} />
+
+          <OrbitControls
+            enablePan
+            enableZoom
+            enableRotate
+            minDistance={2.1}
+            maxDistance={12}
+          />
+        </Canvas>
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center p-6">
+          <div className="max-w-md rounded-xl border border-rose-800/70 bg-slate-900/95 p-6 text-center font-mono">
+            <div className="text-xs font-bold text-rose-400 mb-2">
+              BACKEND TRAJECTORY ERROR
+            </div>
+
+            <p className="text-xs leading-relaxed text-slate-400">
+              {error}
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></span>
-          <span className="text-slate-200 truncate">{nameB} (360° Orbit)</span>
+      )}
+
+      {/* Telemetry Overlay */}
+      {!error && (
+        <div className="absolute top-3 left-3 bg-slate-900/90 backdrop-blur-md p-3.5 rounded-xl border border-slate-800 text-xs font-mono max-w-xs pointer-events-none shadow-lg">
+
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]" />
+
+            <span className="text-white font-bold truncate">
+              {nameA} (Backend Trajectory)
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.8)]" />
+
+            <span className="text-slate-200 truncate">
+              {nameB} (Backend Trajectory)
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+
+            <span className="text-amber-300 font-semibold truncate">
+              TCA Encounter Point
+            </span>
+          </div>
+
+          <div className="text-[10px] text-slate-400 border-t border-slate-800/80 pt-1.5">
+            Drag to rotate • Scroll to zoom • Right-click to pan
+          </div>
         </div>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]"></span>
-          <span className="text-amber-300 font-semibold truncate">TCA Encounter Point</span>
-        </div>
-        <div className="text-[10px] text-slate-400 border-t border-slate-800/80 pt-1.5">
-          Drag to rotate • Scroll to zoom • Right-click to pan
-        </div>
-      </div>
+      )}
 
       <div className="absolute bottom-3 right-3 bg-slate-900/85 px-3 py-1 rounded-lg text-[10px] font-mono text-slate-400 border border-slate-800">
-        Three.js / Photorealistic 3D Earth & Orbit Conjunction
+        Three.js / Backend SGP4 Trajectory
       </div>
     </div>
   );
