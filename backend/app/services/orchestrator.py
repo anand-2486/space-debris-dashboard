@@ -202,21 +202,14 @@ def run_pipeline() -> Dict[str, Any]:
         id_a = int(candidate["norad_cat_id_a"])
         id_b = int(candidate["norad_cat_id_b"])
 
-        coarse_tca = candidate["coarse_tca_timestamp"]
+        coarse_tca_str = candidate["coarse_tca_timestamp"]
 
-        # -----------------------------------------------------
-        # Fine propagation window
-        # -----------------------------------------------------
-        #
-        # 21 points:
-        #   TCA - 10 min
-        #   ...
-        #   TCA
-        #   ...
-        #   TCA + 10 min
-        #
-        # 1-minute resolution
-        # -----------------------------------------------------
+        if isinstance(coarse_tca_str, datetime):
+            coarse_tca = coarse_tca_str
+        else:
+            coarse_tca = datetime.fromisoformat(
+                str(coarse_tca_str).replace("Z", "+00:00")
+            )
 
         fine_timestamps = [
             coarse_tca + timedelta(minutes=offset)
@@ -264,6 +257,11 @@ def run_pipeline() -> Dict[str, Any]:
         # =====================================================
 
         tca_timestamp = conjunction["tca_timestamp"]
+
+        if not isinstance(tca_timestamp, datetime):
+            tca_timestamp = datetime.fromisoformat(
+                str(tca_timestamp).replace("Z", "+00:00")
+            )
 
         # Ensure timezone-aware datetime
         if tca_timestamp.tzinfo is None:
