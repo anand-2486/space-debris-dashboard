@@ -1,0 +1,429 @@
+{
+  "system_status": {
+    "pipeline_status": "ONLINE",
+    "sgp4_engine": "SGP4-v2.3 Core Active",
+    "last_propagated": "2026-08-26T16:45:00.000Z",
+    "retrieved_at": "2026-08-26T16:45:00.000Z",
+    "data_source": "CelesTrak GP API & Space-Track Ephemeris",
+    "monitored_objects": 28412,
+    "active_conjunctions": 6,
+    "high_critical_alerts": 3,
+    "critical_alerts": 2,
+    "minimum_separation_km": 0.184
+  },
+  "events": [
+    {
+      "id": "EVT-2026-0841",
+      "catalog_id": "EVT-2026-0841",
+      "severity": "CRITICAL",
+      "risk_score": 94,
+      "confidence": 91,
+      "tca": "2026-08-27T03:14:22.450Z",
+      "minimum_separation_km": 0.184,
+      "relative_velocity_kms": 14.78,
+      "epoch": "2026-08-26T12:00:00.000Z",
+      "retrieved_at": "2026-08-26T16:30:00.000Z",
+      "source": "CelesTrak / Space-Track SGP4 propagation",
+      "orbital_regime": "LEO (Sun-Synchronous)",
+      "altitude_km": 505.2,
+      "reasons": [
+        "Cross-track orbital intersection geometry projected at 184 meters miss distance",
+        "Extreme relative encounter velocity of 14.78 km/s guarantees catastrophic fragmentation upon impact",
+        "Both primary asset and debris covariance ellipsoids overlap within the 1-sigma boundary",
+        "Recent solar geomagnetic storm (Kp=6) introduces increased atmospheric density drag variance"
+      ],
+      "object_a": {
+        "name": "Cartosat-2F",
+        "norad_id": 43111,
+        "intl_designator": "2018-004A",
+        "type": "Active Earth Observation Payload",
+        "operator": "ISRO",
+        "apogee_km": 520.4,
+        "perigee_km": 498.1,
+        "inclination_deg": 97.55,
+        "period_min": 94.8,
+        "maneuverable": true
+      },
+      "object_b": {
+        "name": "FENGYUN 1C DEB",
+        "norad_id": 30325,
+        "intl_designator": "1999-025DF",
+        "type": "Hypervelocity Debris Fragment",
+        "source_parent": "Fengyun-1C ASAT Breakup (2007)",
+        "apogee_km": 842.1,
+        "perigee_km": 492.3,
+        "inclination_deg": 98.72,
+        "period_min": 98.1,
+        "maneuverable": false
+      },
+      "distance_curve": [
+        { "time_offset_sec": -300, "distance_km": 4434.0 },
+        { "time_offset_sec": -240, "distance_km": 3547.2 },
+        { "time_offset_sec": -180, "distance_km": 2660.4 },
+        { "time_offset_sec": -120, "distance_km": 1773.6 },
+        { "time_offset_sec": -60, "distance_km": 886.8 },
+        { "time_offset_sec": -30, "distance_km": 443.4 },
+        { "time_offset_sec": -10, "distance_km": 147.8 },
+        { "time_offset_sec": -5, "distance_km": 73.9 },
+        { "time_offset_sec": -2, "distance_km": 29.56 },
+        { "time_offset_sec": 0, "distance_km": 0.184 },
+        { "time_offset_sec": 2, "distance_km": 29.56 },
+        { "time_offset_sec": 5, "distance_km": 73.9 },
+        { "time_offset_sec": 10, "distance_km": 147.8 },
+        { "time_offset_sec": 30, "distance_km": 443.4 },
+        { "time_offset_sec": 60, "distance_km": 886.8 },
+        { "time_offset_sec": 120, "distance_km": 1773.6 },
+        { "time_offset_sec": 180, "distance_km": 2660.4 },
+        { "time_offset_sec": 240, "distance_km": 3547.2 },
+        { "time_offset_sec": 300, "distance_km": 4434.0 }
+      ],
+      "trajectories": {
+        "object_a": [
+          { "timestamp": "2026-08-27T03:12:22.450Z", "x": 6885.2, "y": -420.5, "z": 812.1 },
+          { "timestamp": "2026-08-27T03:13:22.450Z", "x": 6742.1, "y": 850.2, "z": 1290.4 },
+          { "timestamp": "2026-08-27T03:14:22.450Z", "x": 6480.6, "y": 2100.8, "z": 1740.2 },
+          { "timestamp": "2026-08-27T03:15:22.450Z", "x": 6100.3, "y": 3310.1, "z": 2150.8 },
+          { "timestamp": "2026-08-27T03:16:22.450Z", "x": 5608.9, "y": 4450.6, "z": 2510.3 }
+        ],
+        "object_b": [
+          { "timestamp": "2026-08-27T03:12:22.450Z", "x": 5612.4, "y": 4448.2, "z": 920.4 },
+          { "timestamp": "2026-08-27T03:13:22.450Z", "x": 6102.1, "y": 3308.7, "z": 1340.9 },
+          { "timestamp": "2026-08-27T03:14:22.450Z", "x": 6480.7, "y": 2100.9, "z": 1740.1 },
+          { "timestamp": "2026-08-27T03:15:22.450Z", "x": 6744.3, "y": 848.9, "z": 2110.5 },
+          { "timestamp": "2026-08-27T03:16:22.450Z", "x": 6886.1, "y": -422.1, "z": 2450.8 }
+        ]
+      }
+    },
+    {
+      "id": "EVT-2026-0842",
+      "catalog_id": "EVT-2026-0842",
+      "severity": "HIGH",
+      "risk_score": 78,
+      "confidence": 89,
+      "tca": "2026-08-27T08:42:10.100Z",
+      "minimum_separation_km": 0.520,
+      "relative_velocity_kms": 12.45,
+      "epoch": "2026-08-26T12:00:00.000Z",
+      "retrieved_at": "2026-08-26T16:30:00.000Z",
+      "source": "CelesTrak / Space-Track SGP4 propagation",
+      "orbital_regime": "LEO (Mega-Constellation)",
+      "altitude_km": 548.0,
+      "reasons": [
+        "Predicted miss distance of 520m falls within the autonomous collision avoidance maneuver threshold",
+        "COSMOS 1408 fragmentation debris cloud displays high spatial density in this orbital shell",
+        "Relative velocity 12.45 km/s yields high kinetic lethality index"
+      ],
+      "object_a": {
+        "name": "Starlink-4921",
+        "norad_id": 52814,
+        "intl_designator": "2022-062AA",
+        "type": "Communications Satellite",
+        "operator": "SpaceX",
+        "apogee_km": 551.2,
+        "perigee_km": 546.8,
+        "inclination_deg": 53.22,
+        "period_min": 95.6,
+        "maneuverable": true
+      },
+      "object_b": {
+        "name": "COSMOS 1408 DEB",
+        "norad_id": 49863,
+        "intl_designator": "1982-092BY",
+        "type": "ASAT Target Fragment",
+        "source_parent": "Cosmos-1408 Destruction (2021)",
+        "apogee_km": 612.0,
+        "perigee_km": 485.4,
+        "inclination_deg": 82.56,
+        "period_min": 95.8,
+        "maneuverable": false
+      },
+      "distance_curve": [
+        { "time_offset_sec": -300, "distance_km": 3735.0 },
+        { "time_offset_sec": -180, "distance_km": 2241.0 },
+        { "time_offset_sec": -60, "distance_km": 747.0 },
+        { "time_offset_sec": -10, "distance_km": 124.5 },
+        { "time_offset_sec": 0, "distance_km": 0.520 },
+        { "time_offset_sec": 10, "distance_km": 124.5 },
+        { "time_offset_sec": 60, "distance_km": 747.0 },
+        { "time_offset_sec": 180, "distance_km": 2241.0 },
+        { "time_offset_sec": 300, "distance_km": 3735.0 }
+      ],
+      "trajectories": {
+        "object_a": [
+          { "timestamp": "2026-08-27T08:40:10.100Z", "x": 4200.5, "y": 4800.2, "z": 2400.1 },
+          { "timestamp": "2026-08-27T08:42:10.100Z", "x": 3500.1, "y": 5200.4, "z": 2900.5 },
+          { "timestamp": "2026-08-27T08:44:10.100Z", "x": 2700.3, "y": 5500.8, "z": 3350.2 }
+        ],
+        "object_b": [
+          { "timestamp": "2026-08-27T08:40:10.100Z", "x": 3200.4, "y": 5600.1, "z": 2300.2 },
+          { "timestamp": "2026-08-27T08:42:10.100Z", "x": 3500.3, "y": 5200.2, "z": 2900.2 },
+          { "timestamp": "2026-08-27T08:44:10.100Z", "x": 3800.1, "y": 4700.5, "z": 3480.9 }
+        ]
+      }
+    },
+    {
+      "id": "EVT-2026-0843",
+      "catalog_id": "EVT-2026-0843",
+      "severity": "HIGH",
+      "risk_score": 74,
+      "confidence": 96,
+      "tca": "2026-08-27T14:19:55.300Z",
+      "minimum_separation_km": 0.890,
+      "relative_velocity_kms": 10.15,
+      "epoch": "2026-08-26T12:00:00.000Z",
+      "retrieved_at": "2026-08-26T16:30:00.000Z",
+      "source": "CelesTrak / Space-Track SGP4 propagation",
+      "orbital_regime": "LEO (Human Spaceflight)",
+      "altitude_km": 418.6,
+      "reasons": [
+        "Inhabited crewed platform proximity box: 0.89 km approaches Flight Rule RED avoidance threshold",
+        "Large radar cross section of SL-16 rocket body remnant indicates high physical mass",
+        "Maneuver readiness advisory initiated for ISS Progress thruster burn"
+      ],
+      "object_a": {
+        "name": "ISS (ZARYA)",
+        "norad_id": 25544,
+        "intl_designator": "1998-067A",
+        "type": "Crewed Space Station",
+        "operator": "International Consortium (NASA/Roscosmos/ESA/JAXA)",
+        "apogee_km": 422.0,
+        "perigee_km": 415.2,
+        "inclination_deg": 51.64,
+        "period_min": 92.9,
+        "maneuverable": true
+      },
+      "object_b": {
+        "name": "SL-16 R/B DEB",
+        "norad_id": 22285,
+        "intl_designator": "1992-076B",
+        "type": "Spent Rocket Upper Stage",
+        "source_parent": "Zenit-2 Launch",
+        "apogee_km": 850.5,
+        "perigee_km": 410.2,
+        "inclination_deg": 71.01,
+        "period_min": 97.4,
+        "maneuverable": false
+      },
+      "distance_curve": [
+        { "time_offset_sec": -300, "distance_km": 3045.0 },
+        { "time_offset_sec": -180, "distance_km": 1827.0 },
+        { "time_offset_sec": -60, "distance_km": 609.0 },
+        { "time_offset_sec": -10, "distance_km": 101.5 },
+        { "time_offset_sec": 0, "distance_km": 0.890 },
+        { "time_offset_sec": 10, "distance_km": 101.5 },
+        { "time_offset_sec": 60, "distance_km": 609.0 },
+        { "time_offset_sec": 180, "distance_km": 1827.0 },
+        { "time_offset_sec": 300, "distance_km": 3045.0 }
+      ],
+      "trajectories": {
+        "object_a": [
+          { "timestamp": "2026-08-27T14:17:55.300Z", "x": 6120.2, "y": -1200.5, "z": 2480.1 },
+          { "timestamp": "2026-08-27T14:19:55.300Z", "x": 5890.4, "y": 200.3, "z": 3010.5 },
+          { "timestamp": "2026-08-27T14:21:55.300Z", "x": 5510.9, "y": 1620.1, "z": 3490.2 }
+        ],
+        "object_b": [
+          { "timestamp": "2026-08-27T14:17:55.300Z", "x": 5200.1, "y": 1100.2, "z": 3600.4 },
+          { "timestamp": "2026-08-27T14:19:55.300Z", "x": 5890.9, "y": 200.8, "z": 3010.1 },
+          { "timestamp": "2026-08-27T14:21:55.300Z", "x": 6450.4, "y": -700.5, "z": 2350.6 }
+        ]
+      }
+    },
+    {
+      "id": "EVT-2026-0844",
+      "catalog_id": "EVT-2026-0844",
+      "severity": "MEDIUM",
+      "risk_score": 52,
+      "confidence": 85,
+      "tca": "2026-08-27T19:33:04.800Z",
+      "minimum_separation_km": 2.410,
+      "relative_velocity_kms": 13.80,
+      "epoch": "2026-08-26T12:00:00.000Z",
+      "retrieved_at": "2026-08-26T16:30:00.000Z",
+      "source": "CelesTrak / Space-Track SGP4 propagation",
+      "orbital_regime": "LEO (Polar Constellation)",
+      "altitude_km": 1195.4,
+      "reasons": [
+        "Moderate proximity in high-altitude polar shell",
+        "High relative velocity (13.80 km/s) warrants active surveillance",
+        "Covariance volume remains outside critical threshold; standby for next SGP4 update"
+      ],
+      "object_a": {
+        "name": "OneWeb-0312",
+        "norad_id": 47442,
+        "intl_designator": "2021-004C",
+        "type": "Broadband Communications Satellite",
+        "operator": "Eutelsat OneWeb",
+        "apogee_km": 1204.2,
+        "perigee_km": 1192.1,
+        "inclination_deg": 87.41,
+        "period_min": 109.2,
+        "maneuverable": true
+      },
+      "object_b": {
+        "name": "CZ-4C DEB",
+        "norad_id": 41457,
+        "intl_designator": "2015-068L",
+        "type": "Launch Vehicle Debris",
+        "source_parent": "Long March 4C",
+        "apogee_km": 1220.0,
+        "perigee_km": 1180.5,
+        "inclination_deg": 99.80,
+        "period_min": 109.5,
+        "maneuverable": false
+      },
+      "distance_curve": [
+        { "time_offset_sec": -300, "distance_km": 4142.4 },
+        { "time_offset_sec": -180, "distance_km": 2485.4 },
+        { "time_offset_sec": -60, "distance_km": 828.4 },
+        { "time_offset_sec": 0, "distance_km": 2.410 },
+        { "time_offset_sec": 60, "distance_km": 828.4 },
+        { "time_offset_sec": 180, "distance_km": 2485.4 },
+        { "time_offset_sec": 300, "distance_km": 4142.4 }
+      ],
+      "trajectories": {
+        "object_a": [
+          { "timestamp": "2026-08-27T19:31:04.800Z", "x": 6900.1, "y": 1200.4, "z": 2800.1 },
+          { "timestamp": "2026-08-27T19:33:04.800Z", "x": 6500.5, "y": 2400.2, "z": 3400.7 },
+          { "timestamp": "2026-08-27T19:35:04.800Z", "x": 6000.2, "y": 3500.9, "z": 3900.2 }
+        ],
+        "object_b": [
+          { "timestamp": "2026-08-27T19:31:04.800Z", "x": 6100.4, "y": 3400.1, "z": 3800.5 },
+          { "timestamp": "2026-08-27T19:33:04.800Z", "x": 6501.9, "y": 2401.8, "z": 3401.5 },
+          { "timestamp": "2026-08-27T19:35:04.800Z", "x": 6800.8, "y": 1300.6, "z": 2900.1 }
+        ]
+      }
+    },
+    {
+      "id": "EVT-2026-0845",
+      "catalog_id": "EVT-2026-0845",
+      "severity": "LOW",
+      "risk_score": 26,
+      "confidence": 92,
+      "tca": "2026-08-28T01:10:12.000Z",
+      "minimum_separation_km": 5.120,
+      "relative_velocity_kms": 8.40,
+      "epoch": "2026-08-26T12:00:00.000Z",
+      "retrieved_at": "2026-08-26T16:30:00.000Z",
+      "source": "CelesTrak / Space-Track SGP4 propagation",
+      "orbital_regime": "LEO (Altimetry)",
+      "altitude_km": 1336.0,
+      "reasons": [
+        "Separation comfortably exceeds 5 km standard safety threshold",
+        "Orbital plane geometry diverging rapidly post-TCA",
+        "Ephemeris quality rating optimal (92/100 confidence)"
+      ],
+      "object_a": {
+        "name": "Sentinel-6A",
+        "norad_id": 46984,
+        "intl_designator": "2020-086A",
+        "type": "Ocean Altimetry Satellite",
+        "operator": "ESA / EUMETSAT / NASA",
+        "apogee_km": 1342.1,
+        "perigee_km": 1330.4,
+        "inclination_deg": 66.04,
+        "period_min": 112.4,
+        "maneuverable": true
+      },
+      "object_b": {
+        "name": "TITAN 3C DEB",
+        "norad_id": 12896,
+        "intl_designator": "1965-082HW",
+        "type": "Historical Debris",
+        "source_parent": "Titan Transtage Breakup",
+        "apogee_km": 1350.0,
+        "perigee_km": 1315.0,
+        "inclination_deg": 32.14,
+        "period_min": 112.2,
+        "maneuverable": false
+      },
+      "distance_curve": [
+        { "time_offset_sec": -300, "distance_km": 2525.1 },
+        { "time_offset_sec": -180, "distance_km": 1517.1 },
+        { "time_offset_sec": -60, "distance_km": 509.1 },
+        { "time_offset_sec": 0, "distance_km": 5.120 },
+        { "time_offset_sec": 60, "distance_km": 509.1 },
+        { "time_offset_sec": 180, "distance_km": 1517.1 },
+        { "time_offset_sec": 300, "distance_km": 2525.1 }
+      ],
+      "trajectories": {
+        "object_a": [
+          { "timestamp": "2026-08-28T01:08:12.000Z", "x": 5100.2, "y": -4800.5, "z": 3800.1 },
+          { "timestamp": "2026-08-28T01:10:12.000Z", "x": 5400.1, "y": -4300.2, "z": 4100.4 },
+          { "timestamp": "2026-08-28T01:12:12.000Z", "x": 5650.8, "y": -3750.9, "z": 4350.2 }
+        ],
+        "object_b": [
+          { "timestamp": "2026-08-28T01:08:12.000Z", "x": 5396.0, "y": -4304.5, "z": 4096.0 },
+          { "timestamp": "2026-08-28T01:10:12.000Z", "x": 5404.2, "y": -4301.8, "z": 4103.5 },
+          { "timestamp": "2026-08-28T01:12:12.000Z", "x": 5410.5, "y": -4298.1, "z": 4110.2 }
+        ]
+      }
+    },
+    {
+      "id": "EVT-2026-0846",
+      "catalog_id": "EVT-2026-0846",
+      "severity": "CRITICAL",
+      "risk_score": 89,
+      "confidence": 87,
+      "tca": "2026-08-28T05:58:30.120Z",
+      "minimum_separation_km": 0.230,
+      "relative_velocity_kms": 15.10,
+      "epoch": "2026-08-26T12:00:00.000Z",
+      "retrieved_at": "2026-08-26T16:30:00.000Z",
+      "source": "CelesTrak / Space-Track SGP4 propagation",
+      "orbital_regime": "LEO (Radar Reconnaissance)",
+      "altitude_km": 574.8,
+      "reasons": [
+        "Head-on inclination angle encounter generating 15.10 km/s closing velocity",
+        "Predicted miss distance of 230 meters is inside the mission emergency safety boundary",
+        "Actionable decision window expires in T-11 hours before next uplink opportunity"
+      ],
+      "object_a": {
+        "name": "RISAT-2BR1",
+        "norad_id": 44857,
+        "intl_designator": "2019-089A",
+        "type": "X-Band Radar Earth Observation",
+        "operator": "ISRO",
+        "apogee_km": 578.2,
+        "perigee_km": 571.4,
+        "inclination_deg": 37.02,
+        "period_min": 96.1,
+        "maneuverable": true
+      },
+      "object_b": {
+        "name": "BREEZE-M DEB",
+        "norad_id": 38752,
+        "intl_designator": "2012-044Y",
+        "type": "Exploded Booster Debris",
+        "source_parent": "Proton-M / Briz-M Auxiliary Tank Breakup",
+        "apogee_km": 595.0,
+        "perigee_km": 562.3,
+        "inclination_deg": 49.88,
+        "period_min": 96.2,
+        "maneuverable": false
+      },
+      "distance_curve": [
+        { "time_offset_sec": -300, "distance_km": 4530.0 },
+        { "time_offset_sec": -180, "distance_km": 2718.0 },
+        { "time_offset_sec": -60, "distance_km": 906.0 },
+        { "time_offset_sec": -10, "distance_km": 151.0 },
+        { "time_offset_sec": 0, "distance_km": 0.230 },
+        { "time_offset_sec": 10, "distance_km": 151.0 },
+        { "time_offset_sec": 60, "distance_km": 906.0 },
+        { "time_offset_sec": 180, "distance_km": 2718.0 },
+        { "time_offset_sec": 300, "distance_km": 4530.0 }
+      ],
+      "trajectories": {
+        "object_a": [
+          { "timestamp": "2026-08-28T05:56:30.120Z", "x": 6700.4, "y": 1100.8, "z": 1800.5 },
+          { "timestamp": "2026-08-28T05:58:30.120Z", "x": 6420.2, "y": 2300.4, "z": 2150.1 },
+          { "timestamp": "2026-08-28T06:00:30.120Z", "x": 6050.8, "y": 3410.2, "z": 2420.9 }
+        ],
+        "object_b": [
+          { "timestamp": "2026-08-28T05:56:30.120Z", "x": 6120.8, "y": 3500.1, "z": 2500.4 },
+          { "timestamp": "2026-08-28T05:58:30.120Z", "x": 6420.4, "y": 2300.5, "z": 2150.2 },
+          { "timestamp": "2026-08-28T06:00:30.120Z", "x": 6650.1, "y": 1000.4, "z": 1780.2 }
+        ]
+      }
+    }
+  ]
+}
