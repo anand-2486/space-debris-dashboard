@@ -147,7 +147,7 @@ def run_pipeline() -> Dict[str, Any]:
 
     coarse_timestamps = [
         base_time + timedelta(minutes=10 * i)
-        for i in range(4)
+        for i in range(145)
     ]
 
     print(
