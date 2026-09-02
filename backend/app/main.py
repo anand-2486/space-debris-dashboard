@@ -1,12 +1,16 @@
 from fastapi import FastAPI
 from app.api.routes import router
 from fastapi.middleware.cors import CORSMiddleware
-
+from app.core.database import ensure_database_ready
 
 app = FastAPI(
     title="Space Debris Tracking API",
     version="1.0.0"
 )
+
+@app.on_event("startup")
+def startup():
+    ensure_database_ready()
 
 app.add_middleware(
     CORSMiddleware,

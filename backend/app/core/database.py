@@ -104,7 +104,18 @@ def seed_database_from_snapshot():
     conn.close()
     print(f"Success! Seeded {count} objects into the SQLite database.")
 
-if __name__ == "__main__":
-    # Execute the database setup and seeding
+def ensure_database_ready():
     init_db()
-    seed_database_from_snapshot() 
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM satellites")
+    count = cursor.fetchone()[0]
+    conn.close()
+
+    if count == 0:
+        seed_database_from_snapshot()
+
+
+if __name__ == "__main__":
+    ensure_database_ready()
